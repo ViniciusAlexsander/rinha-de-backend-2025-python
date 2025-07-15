@@ -1,0 +1,48 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# VSCode / PyCharm
+.vscode/
+.idea/
+
+# Migrations (se usar Alembic)
+alembic.ini
+alembic/versions/
+
+# Pytest
+.cache/
+.pytest_cache/
+
+# Logs
+*.log
+
+# SQLite (se for usado para testes locais)
+*.sqlite3
+
+# Local .env files
+.env*
+
+# mypy, coverage, etc
+.mypy_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Docker
+**/postgres_data/
+docker-compose.override.yml
+
+# System
+.DS_Store
+Thumbs.db
