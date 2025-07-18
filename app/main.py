@@ -1,23 +1,22 @@
-from fastapi import FastAPI, Depends
-from sqlalchemy.orm import Session
-from . import  schemas, service
-from .database import SessionLocal, engine, Base
-
-Base.metadata.create_all(bind=engine)
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from app.processor import process_payment
 
 app = FastAPI()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@app.get("/payments/", response_model=list[schemas.PaymentRead])
-def get_payment(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    return service.get_payment(db, skip=skip, limit=limit)
+class TransacaoRequest(BaseModel):
+    valor: float
 
 @app.post("/payments")
-def create_payment(payment: schemas.PaymentCreate, db: Session = Depends(get_db)):
-    return service.create_payment(db=db, payment=payment)
+async def payments(payload: TransacaoRequest):
+    try:
+        resultado = await process_payment(payload.valor)
+        return {"status": "ok", "detalhes": resultado}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/")
+async def root():
+    return {"message": "API está no ar"}
+
+
