@@ -10,18 +10,21 @@ services:
       - payment-processor
     depends_on:
       - db
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/rinha
+    env_file:
+      - .env
 
   db:
     image: postgres:16-alpine
     container_name: rinha-db
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: rinha
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - payment-processor
 
