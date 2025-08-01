@@ -21,7 +21,7 @@ services:
           memory: "48MB"
 
   api-base: &api-base
-    build: .
+    image: cacambito/rinha-backend-2025-python:latest
     networks:
       - payment-processor
     depends_on:
