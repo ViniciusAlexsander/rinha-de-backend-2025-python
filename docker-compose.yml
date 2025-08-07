@@ -25,7 +25,8 @@ services:
     networks:
       - payment-processor
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgresql://postgres:postgres@rinha-db:5432/rinha
     volumes:
@@ -64,6 +65,11 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - payment-processor
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
     deploy:
       resources:
         limits:
