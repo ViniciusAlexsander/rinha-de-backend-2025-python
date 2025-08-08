@@ -1,6 +1,5 @@
 import httpx
 from datetime import datetime, timezone
-import uuid
 import asyncpg
 from app.models import PaymentIn, PaymentsSummaryResponse, SummaryItem
 
@@ -50,16 +49,29 @@ async def create_payment(payment: PaymentIn, db_pool: asyncpg.pool.Pool):
     async with db_pool.acquire() as conn:
         await conn.execute(_insert_payment_query, payment.correlationId, payment.amount, payment.requestedAt, payment.processorType)
 
-_get_payments_summary_query = """
-            SELECT processor_type, COUNT(*) AS total_requests, SUM(amount) AS total_amount
-            FROM payments
-            WHERE requested_at >= $1 AND requested_at <= $2
-            GROUP BY processor_type
-        """
+async def get_payments_summary(db_pool: asyncpg.pool.Pool, from_date: datetime=None, to_date: datetime=None):
+    
+    _get_payments_summary_query = """SELECT processor_type, COUNT(*) AS total_requests, SUM(amount) AS total_amount FROM payments"""
+    conditions = []
+    params = []
 
-async def get_payments_summary(from_date: datetime, to_date: datetime, db_pool: asyncpg.pool.Pool):
+    if from_date is not None:
+        params.append(from_date)
+        conditions.append(f"requested_at >= ${len(params)}")
+
+    if to_date is not None:
+        params.append(to_date)
+        conditions.append(f"requested_at <= ${len(params)}")
+    
+    if conditions:
+        _get_payments_summary_query += " WHERE " + " AND ".join(conditions)
+
+    _get_payments_summary_query += " GROUP BY processor_type"
+
+    print(_get_payments_summary_query)
+    
     async with db_pool.acquire() as conn:
-        result = await conn.fetch(_get_payments_summary_query, from_date, to_date)
+        result = await conn.fetch(_get_payments_summary_query, *params)
 
     print("Query Result:", result)
 

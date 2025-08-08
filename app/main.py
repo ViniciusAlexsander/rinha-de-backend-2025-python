@@ -42,9 +42,9 @@ async def payments(payload: TransacaoRequest):
 
 @app.get("/payments-summary")
 async def payments_summary(    
-    from_date: datetime = Query(..., alias="from"),
-    to_date: datetime = Query(..., alias="to")):
-    return await get_payments_summary(from_date, to_date, db_pool)
+    from_date: datetime | None = Query(None, alias="from"),
+    to_date: datetime | None = Query(None, alias="to")):
+    return await get_payments_summary(db_pool, from_date, to_date)
 
 @app.get("/")
 async def root():
