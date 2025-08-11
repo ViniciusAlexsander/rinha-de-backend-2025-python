@@ -1,4 +1,5 @@
 import asyncio
+from typing import Optional
 from fastapi import FastAPI, HTTPException, Query
 from app.db import get_db_pool
 from app.models import TransacaoRequest
@@ -42,9 +43,27 @@ async def payments(payload: TransacaoRequest):
 
 @app.get("/payments-summary")
 async def payments_summary(    
-    from_date: datetime | None = Query(None, alias="from"),
-    to_date: datetime | None = Query(None, alias="to")):
-    return await get_payments_summary(db_pool, from_date, to_date)
+    from_date: Optional[str] = Query(None, alias="from"),
+    to_date: Optional[str] = Query(None, alias="to")
+):
+    def parse_date(value: Optional[str]) -> Optional[datetime]:
+        if not value:
+            return None
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError:
+            try:
+                return datetime.strptime(value, "%Y-%m-%d")
+            except ValueError:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Formato inválido para data: {value}"
+                )
+
+    from_dt = parse_date(from_date)
+    to_dt = parse_date(to_date)
+    
+    return await get_payments_summary(db_pool, from_dt, to_dt)
 
 @app.get("/")
 async def root():
