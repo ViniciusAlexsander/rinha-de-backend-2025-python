@@ -5,7 +5,7 @@ import asyncio
 
 logger = logging.getLogger("uvicorn.error")
 
-MAX_CONCURRENT_PAYMENTS = 50
+MAX_CONCURRENT_PAYMENTS = 20
 
 async def handle_payment(pagamento, db_pool):
     try:
@@ -24,12 +24,11 @@ async def payment_worker(db_pool):
         while True:
             pagamento = await payment_queue.get()
             await semaphore.acquire()
-            asyncio.create_task(process_with_semaphore(pagamento, db_pool))
+            asyncio.create_task(process_with_semaphore(pagamento, db_pool, semaphore))
 
     await worker_task()
 
 async def process_with_semaphore(pagamento, db_pool, semaphore):
-    try:
+    async with semaphore:
         await handle_payment(pagamento, db_pool)
-    finally:
         semaphore.release()

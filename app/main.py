@@ -14,7 +14,7 @@ logger = logging.getLogger("uvicorn.error")
 db_pool = None
 worker_task = None
 async def lifespan(app: FastAPI):
-    global db_pool
+    global db_pool, worker_task
     db_pool = await get_db_pool()
     try:
         async with db_pool.acquire() as conn:
@@ -26,7 +26,13 @@ async def lifespan(app: FastAPI):
     worker_task = asyncio.create_task(payment_worker(db_pool))
 
     yield
+
     worker_task.cancel()
+    try:
+        await worker_task
+    except asyncio.CancelledError:
+        pass
+
     await db_pool.close()
 
 app = FastAPI(lifespan=lifespan)

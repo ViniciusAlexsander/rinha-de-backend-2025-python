@@ -16,7 +16,7 @@ services:
       resources:
         limits:
           cpus: "0.2"
-          memory: "48MB"
+          memory: "30MB"
 
   api-base: &api-base
     build: .
@@ -33,7 +33,7 @@ services:
       resources:
         limits:
           cpus: "0.6"
-          memory: "108MB"
+          memory: "115MB"
 
   api-1:
     <<: *api-base
@@ -72,7 +72,7 @@ services:
       resources:
         limits:
           cpus: "0.1"
-          memory: "86MB"
+          memory: "90MB"
 
 networks:
   payment-processor:

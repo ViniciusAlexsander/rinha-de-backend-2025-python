@@ -28,17 +28,14 @@ async def process_payment(amount: float, correlationId: str, db_pool: asyncpg.po
             )
             await create_payment(payment_obj, db_pool)
             return
-        except Exception:
-            response = await client.post(FALLBACK_URL, json=payload, headers=headers, timeout=5)
-            response.raise_for_status()
-            payment_obj = PaymentIn(
-                correlationId=correlationId,
-                amount=amount,
-                requestedAt=requested_at,
-                processorType="fallback"
-            )
-            await create_payment(payment_obj, db_pool)
-            return
+        except Exception as e:
+            try:
+                response = await client.post(FALLBACK_URL, json=payload, headers=headers, timeout=5)
+                response.raise_for_status()
+                payment_obj = PaymentIn(...)
+                await create_payment(payment_obj, db_pool)
+            except Exception as fallback_e:
+                raise fallback_e
 
 _insert_payment_query = """
             INSERT INTO payments (correlation_id, amount, requested_at, processor_type)
